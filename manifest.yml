@@ -9,7 +9,8 @@ applications:
     services:
       - mysql
     env:
-      TYPO3_SYS_SITENAME: Test Site
-      TYPO3_SYS_ENCRYPTIONKEY: 8503975297c61952062ea2541efc8559591c67859f9be1949919f7a9082e53d5b6b2089fd31455523f3cee851cc7200d
-      TYPO3_SYS_ISINITIALIMPORTDONE: 1
-      TYPO3_SYS_ISINITIALINSTALLATIONINPROGRESS: 0
+      #TYPO3__DB__username: xxxvcap_services_credentials_usernamexxx
+      #TYPO3__DB__password: xxxvcap_services_credentials_passwordxxx
+      #TYPO3__DB__database: xxxvcap_services_credentials_databasexxx
+      #TYPO3__DB__host: xxxvcap_services_credentials_hostxxx
+      #TYPO3__DB__port: xxxvcap_services_credentials_portxxx
