@@ -1,9 +1,18 @@
-# Exclude composer libs
-/vendor
-# Exclude linked sources
-/web/typo3temp
-/web/index.php
-/web/typo3
-/web/typo3conf/ext
-# Configuration
+### Folders
+.idea
+/vendor/
+
+### Files
 .env
+/composer.phar
+
+### TYPO3 instance
+/var/*
+!/var/labels
+/vendor
+/web/*
+!/web/.htaccess
+!/web/typo3conf
+/web/typo3conf/*
+!/web/typo3conf/LocalConfiguration.php
+!/web/typo3conf/AdditionalConfiguration.php
