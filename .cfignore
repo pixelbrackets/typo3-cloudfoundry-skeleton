@@ -1,3 +1,5 @@
-/vendor
+# Ignore when pushing to Cloud Foundry
+/var
 /web/typo3temp
+/vendor
 /web/typo3conf/ext
