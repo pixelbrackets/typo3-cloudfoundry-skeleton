@@ -1,3 +1,22 @@
 {
+  "PHP_EXTENSIONS": [
+    "apc",
+    "bz2",
+    "curl",
+    "fileinfo",
+    "gd",
+    "intl",
+    "json",
+    "mbstring",
+    "mcrypt",
+    "mysqli",
+    "openssl",
+    "pdo",
+    "pdo_mysql",
+    "soap",
+    "xml",
+    "zip",
+    "zlib"
+  ],
   "WEBDIR": "web"
 }
