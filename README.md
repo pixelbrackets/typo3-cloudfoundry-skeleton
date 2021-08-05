@@ -1,108 +1,106 @@
-# TYPO3 CloudFoundry boilerplate
+# TYPO3 CloudFoundry Skeleton
 
 Delivers a foundation for TYPO3 CMS on any cloudfoundry deployment.
 
-## Walkthrough
+## Primer
 
-1. Open an account with Pivotal CloudFoundry (for example. https://run.pivotal.io)
-2. Install the CLI [https://docs.cloudfoundry.org/devguide/installcf/install-go-cli.html]
-3. login ``cf login -a https://api.run.pivotal.io -o yourorg -s development -u your@mail -p password``
-4. create a mysql-service with ClearDB named ``mysql``
-5. run ``cf push``. You should see your app pushed and it will tell you the target URL
-6. Open the the URL/typo3 and confirm the last steps of the install tool.
-7. Success! :)
+This skeleton is based on
 
-## Structure
+- https://github.com/TYPO3/TYPO3.CMS.BaseDistribution/tree/10.x
+- https://github.com/cedricziel/typo3-cloudfoundry-skeleton/
 
-To explain this package a bit, let us quickly run through it:
+## Setup
 
-```
-.bp-config/                        # BuildPack configuration
-
-  - options.json                    # Lets you configure webroot, webserver software etc
-
-vendor/                            # composer library directory
-
-web/                               # web root
-
-  - typo3conf/                     # TYPO3 Configuration directory (just a few skeleton files)
-
-    - ENABLE_INSTALL_TOOL          # Just a marker file - use this to enable the install tool manually
-
-    - AdditionalConfiguration.php  # One of the more interesting things dynamic config is nailed here
-
-    - LocalConfiguration.php       # Boilerplate config
-
-    - PackageStates.php            # Important! TYPO3 reads information about active packages from
-                                   # this file. If you "install" an extension, you need to
-
-- .cfignore                        # .gitignore style file to exclude files from deployment 
-
-- manifest.yml                     # CloudFoundry manifest [https://docs.cloudfoundry.org/devguide/deploy-apps/manifest.html] 
-
-.env.example                       # Skeleton file. you can set settings from a .env file as well
-```
+- Get an account on any cloud service based on CloudFoundry
+- Create a new app instance and a MySQL database on the cloud service
+- Login using `cf login`
+- Push all local files using `cf push` - This will return the URI of the app
+  - Since the database is empty yet, the app frontend will show an error message
+- Database setup
+  - Option A: Autogenerate a new site
+    - Prepare local files
+      ```bash
+      touch web/typo3conf/ENABLE_INSTALL_TOOL`
+      touch web/FIRST_INSTALL`
+      rm web/typo3conf/LocalConfiguration.php`
+      cf push
+      ```
+    - Run site generation on instance
+      ```bash
+      cf enable-ssh <app-name>
+      cf ssh # this will SSH into the instance
+      php vendor/bin/typo3cms install:setup
+      ```
+      or use the webview of the app (redirects to the installation process)
+    - Copy generated settings back to your Git repository
+      ```bash
+      cf files <app-name> web/typo3conf/LocalConfiguration.php > web/typo3conf/LocalConfiguration.php
+      rm web/typo3conf/ENABLE_INSTALL_TOOL
+      rm web/FIRST_INSTALL
+      cf push
+      ```
+  - Option B: Import an existing site
+    - Save a database dump into the root directory
+    - Push dump to instance
+      ```bash
+      cf push
+      ```
+    - Import site on instance
+      ```bash
+      cf enable-ssh <app-name>
+      cf ssh # this will SSH into the instance
+      cat database.sql | php vendor/bin/typo3cms database:import
+      ```
 
 ## Configuration
 
-Configuration of the buildpack takes place in [.bp-config/options.json].
+- CloudStack PHP Buildpack (webserver and installed PHP extensions) see [.bp-config/options.json]().
+  - See [CloudFoundry PHP Buildpack Options](https://docs.cloudfoundry.org/buildpacks/php/gsg-php-config.html).
+- CloudStack PHP Settings see [.bp-config/php/php.ini.d/settings.ini]()
+- TYPO3 Settings see [web/typo3conf/LocalConfiguration.php]()
 
-For a list of options have a look at [https://github.com/cloudfoundry/php-buildpack/blob/master/docs/config.md].
+### Environment variables
 
-You can use dotenv to have more 12-factor style configuration ([http://12factor.net/config])
+Either use `cf set-env <app-name> <env variable name> <env variable value>`
+or edit the env block of the manifest file.
 
+On local development machines you may also copy the `.env.template` to `.env`
+and set all desired values like database credentials or application context.
 
-## Composer Github token
+## Persistent File Storage
 
-To supply the token, you can either use ``cf set-env <your-app-name> COMPOSER_GITHUB_OAUTH_TOKEN "<oauth-token-value>"``, or you can add it to the env: block of your application manifest.
+CloudFoundry runs instances which use
+[a new disk image for each start](https://docs.cloudfoundry.org/devguide/deploy-apps/prepare-to-deploy.html#filesystem).
+This means that the local file system storage is short-lived and can not be used
+to persist editorial files stored in TYPO3's »fileadmin«.
 
-## Installing
+TYPO3 supports
+[different drivers for the file storage](https://docs.typo3.org/m/typo3/reference-coreapi/master/en-us/ApiOverview/Fal/Administration/Storages.html)
+besides the default »local file system«. These drivers are provided by 
+[third party extensions](https://extensions.typo3.org/?L=0&id=1&tx_solr%5Bq%5D=fal+driver)
+and connect instances to AWS S3, Dropbox, Google Drive, or any fileserver
+supporting SFTP.
 
-### On Cloudfoundry
+Note that temporary files are no problem here. CloudFoundry recreates most of 
+them during `composer install` while the instance is spinning up.
+TYPO3 recreates cache files whenever they are missing.
 
-1. Create a ClearDB service named ``mysql`` & set ``TYPO3_SYS_ENCRYPTIONKEY`` in manifest.yml
-2. Use ``cf push`` to run the deployment
-3. Open the backend at $domain/typo3 and finish the setup - the database credentials will be provided.
-4. Once finished, set the environment variables ``TYPO3_SYS_ISINITIALIMPORTDONE`` and ``TYPO3_SYS_ISINITIALINSTALLATIONINPROGRESS``
+## License
 
-### On your local machine
+GNU General Public License version 2 or later
 
-1. Install composer
-2. Copy ``.env.example`` to ``.env``
+The GNU General Public License can be found at http://www.gnu.org/copyleft/gpl.html.
 
-## Run locally
+## Author
 
-``php -S localhost:8000 server.php``
+Dan Untenzu (<untenzu@webit.de> / [@pixelbrackets](https://github.com/pixelbrackets))
+for webit! Gesellschaft für neue Medien mbH (http://www.webit.de/)
 
-## Reading files on your cloudfoundry instance
+The skeleton is based on a [prototype](https://github.com/cedricziel/typo3-cloudfoundry-skeleton/)
+by [Cedric Ziel](https://github.com/cedricziel).
 
-As CF has no persistent file storage, you need to read some of them and sync the state.
+## Contribution
 
-For example: Install extension, copy the new configuration to your local file.
+> TYPO3 - inspiring people to share!
 
-``cf files $app-name app/web/typo3conf/PackageStates.php``
-
-## Blockers / Criticism
-
-As with most Platform-as-a-Service offerings, Cloud Foundry follows the 12 factor
-manifest, which imposes an immutable state of the application to ensure it can scale
-up and down and in and out at will.
-
-TYPO3 CMS doesnt offer this state (yet).
-
-Here's a few points:
-
-* official command line interface for, or rather with "admin commands"
-* no immutable configuration - it needs to be able to modify its own 
-  configuration on install
-* temporary storage. While php class caches are volatile, generated images are not
-
-## Proposals
-
-* Allow configuration via environment (no, security is no blocker in that regard. no, it's not overengineering to offer a direct source of configuration)
-* Allow for different targets for temporary images and assets - running an app multi-tenant makes local file caches a huge pain
-* Take running on public clouds in the easiest ways into account. AppEngine, Pivotal Cloudfoundry, ElasticBeanstalk, Heroku. - They are cheap and can scale fast.
-
-## Applause
-
-So far I'm pretty impressed as to how far the modernizing has gone! Thank you.
+This package is Open Source, so please use, patch, extend or fork it.
