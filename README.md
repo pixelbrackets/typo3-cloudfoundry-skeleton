@@ -67,7 +67,7 @@ or edit the env block of the manifest file.
 On local development machines you may also copy the `.env.template` to `.env`
 and set all desired values like database credentials or application context.
 
-## Persistent File Storage
+### Persistent File Storage
 
 CloudFoundry runs instances which use
 [a new disk image for each start](https://docs.cloudfoundry.org/devguide/deploy-apps/prepare-to-deploy.html#filesystem).
